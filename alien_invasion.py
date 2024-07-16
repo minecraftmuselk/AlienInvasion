@@ -44,6 +44,7 @@ class AlienInvasion:
             self._update_screen()
             self.clock.tick(60)
 
+    # Keyboard Inputs
     def _check_events(self):
         """Respond to keypress"""
         for event in pygame.event.get():
@@ -72,20 +73,14 @@ class AlienInvasion:
         elif event.key == pygame.K_LEFT:
             self.ship.moving_left = False
 
+    # Bullet Functions
     def _fire_bullet(self):
         """Create new bullet"""
         if len(self.bullets) < self.settings.bullets_allowed:
             new_bullet = Bullet(self)
             self.bullets.add(new_bullet)
 
-    def _update_bullets(self):
-        self.bullets.update()
-
-        # Get rid of bullets
-        for bullet in self.bullets.copy():
-            if bullet.rect.bottom <= 0:
-                self.bullets.remove(bullet)
-
+    # Alien Functions
     def _create_fleet(self):
         """Create fleet"""
         alien = Alien(self)
@@ -118,9 +113,30 @@ class AlienInvasion:
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
+    def _check_bullet_alien_collisions(self):
+        collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+
+        if not self.aliens:
+            self.bullets.empty()
+            self._create_fleet()
+
+    # Update Functions
+    def _update_bullets(self):
+        self.bullets.update()
+
+        # Get rid of bullets
+        for bullet in self.bullets.copy():
+            if bullet.rect.bottom <= 0:
+                self.bullets.remove(bullet)
+
+        self._check_bullet_alien_collisions()
+
     def _update_aliens(self):
         self._check_fleet_edges()
         self.aliens.update()
+
+        if pygame.sprite.spritecollideany(self.ship, self.aliens):
+            print('Ship hit!!')
 
     def _update_screen(self):
         """Redraw screen"""
